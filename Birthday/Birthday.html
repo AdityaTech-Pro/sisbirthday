@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Happy Birthday, Paridhi! ❤️ — Interactive Birthday Memory Book</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Great Vibes (Handwritten), Playfair Display (Editorial Serif), Plus Jakarta Sans (Clean Modern) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Tone.js for gentle Birthday Music Box chime -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+  <style>
+    :root {
+      --pastel-pink: #FFF0F5;
+      --soft-blush: #FDE2E4;
+      --lavender-mist: #EAE4E9;
+      --warm-cream: #FFFDF9;
+      --royal-gold: #D4AF37;
+      --deep-plum: #4A1D35;
+      --rose-berry: #C94A7C;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at top left, #FFF0F5 0%, #EAE4E9 48%, #FFFDF9 100%);
+      color: var(--deep-plum);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .font-script {
+      font-family: 'Great Vibes', cursive;
+    }
+
+    .font-serif-editorial {
+      font-family: 'Playfair Display', serif;
+    }
+
+    /* Gold shimmer border & luxury card elevation */
+    .gold-frame {
+      border: 2px solid rgba(212, 175, 55, 0.55);
+      box-shadow: 0 20px 50px -12px rgba(74, 29, 53, 0.14), 0 0 0 6px rgba(255, 253, 249, 0.85);
+    }
+
+    .polaroid-card {
+      background: #FFFFFF;
+      padding: 12px 12px 26px 12px;
+      border-radius: 16px;
+      border: 1.5px solid #F5D5E2;
+      box-shadow: 0 14px 32px rgba(74, 29, 53, 0.1);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+    }
+
+    .polaroid-card:hover {
+      transform: translateY(-6px) scale(1.02) rotate(0deg) !important;
+      box-shadow: 0 22px 44px rgba(201, 74, 124, 0.18);
+      z-index: 20;
+    }
+
+    /* Page transition animation */
+    .book-page {
+      display: none;
+      opacity: 0;
+      transform: translateY(14px) scale(0.99);
+      transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .book-page.active {
+      display: block;
+      animation: pageReveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .book-view-all .book-page {
+      display: block !important;
+      opacity: 1 !important;
+      transform: none !important;
+      margin-bottom: 3rem;
+    }
+
+    @keyframes pageReveal {
+      0% {
+        opacity: 0;
+        transform: translateY(16px) scale(0.985);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Candle flame flicker */
+    @keyframes flicker {
+      0%, 100% { transform: scale(1) rotate(-2deg); opacity: 1; }
+      50% { transform: scale(1.14) rotate(3deg); opacity: 0.9; }
+    }
+
+    .candle-flame {
+      animation: flicker 1.1s infinite ease-in-out;
+      transform-origin: bottom center;
+    }
+
+    .candle-flame.blown-out {
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.4s ease;
+      animation: none;
+    }
+
+    /* Floating ambient petals / sparkles */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-12px) rotate(6deg); }
+    }
+
+    .float-ambient {
+      animation: floatSlow 5s ease-in-out infinite;
+    }
+
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #FFF0F5;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #E2B4C7;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="relative selection:bg-pink-200 selection:text-pink-950">
+
+  <!-- Confetti & Sparkles Overlay Canvas -->
+  <canvas id="celebrationCanvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+  <!-- Subtle Floating Ambient Decorations -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-60">
+    <div class="absolute top-12 left-8 text-pink-300 text-2xl float-ambient" style="animation-delay: 0s;">✿</div>
+    <div class="absolute top-28 right-12 text-amber-400 text-xl float-ambient" style="animation-delay: 1.2s;">✦</div>
+    <div class="absolute bottom-24 left-12 text-purple-300 text-2xl float-ambient" style="animation-delay: 2.1s;">🦋</div>
+    <div class="absolute bottom-16 right-10 text-pink-300 text-2xl float-ambient" style="animation-delay: 0.8s;">❀</div>
+    <div class="absolute top-1/2 left-4 text-amber-300 text-lg float-ambient" style="animation-delay: 1.7s;">✨</div>
+  </div>
+
+  <!-- Top Luxury Navigation Bar -->
+  <header class="sticky top-0 z-40 backdrop-blur-md bg-[#FFFDF9]/85 border-b border-pink-200/70 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand / Title -->
+      <div class="flex items-center gap-2.5 cursor-pointer" onclick="goToPage(1)">
+        <span class="w-9 h-9 rounded-full bg-gradient-to-tr from-pink-400 via-rose-400 to-amber-300 text-white flex items-center justify-center shadow-sm">
+          <i class="fa-solid fa-crown text-sm"></i>
+        </span>
+        <div>
+          <p class="font-serif-editorial font-bold text-base sm:text-lg text-[#4A1D35] leading-tight">
+            Paridhi’s Birthday Book
+          </p>
+          <p class="text-[11px] uppercase tracking-widest text-amber-700 font-semibold">
+            For My Beloved Gungun ❤️
+          </p>
+        </div>
+      </div>
+
+      <!-- Page Pill Tabs (Desktop) -->
+      <nav aria-label="Memory book pages" class="hidden lg:flex items-center gap-1.5 bg-pink-50/90 p-1 rounded-full border border-pink-200/80" id="desktopNavPills">
+        <button onclick="goToPage(1)" data-nav="1" class="nav-pill px-3 py-1.5 rounded-full text-xs font-semibold transition">1. Keepsake I</button>
+        <button onclick="goToPage(2)" data-nav="2" class="nav-pill px-3 py-1.5 rounded-full text-xs font-semibold transition">2. Cover 🎂</button>
+        <button onclick="goToPage(3)" data-nav="3" class="nav-pill px-3 py-1.5 rounded-full text-xs font-semibold transition">3. Memories 📸</button>
+        <button onclick="goToPage(4)" data-nav="4" class="nav-pill px-3 py-1.5 rounded-full text-xs font-semibold transition">4. Message 💗</button>
+        <button onclick="goToPage(5)" data-nav="5" class="nav-pill px-3 py-1.5 rounded-full text-xs font-semibold transition">5. Wishes ✨</button>
+        <button onclick="goToPage(6)" data-nav="6" class="nav-pill px-3 py-1.5 rounded-full text-xs font-semibold transition">6. Ending 💕</button>
+        <button onclick="goToPage(7)" data-nav="7" class="nav-pill px-3 py-1.5 rounded-full text-xs font-semibold transition">7. Keepsake II</button>
+      </nav>
+
+      <!-- Utility Controls: Music Box, Confetti, View All Toggle -->
+      <div class="flex items-center gap-2">
+        <button id="musicBtn" onclick="toggleMusicBox()" title="Play Birthday Music Box"
+          class="px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-100/80 hover:bg-purple-200/80 text-purple-900 border border-purple-200 transition flex items-center gap-1.5">
+          <i id="musicIcon" class="fa-solid fa-music"></i>
+          <span class="hidden sm:inline" id="musicLabel">Music Box</span>
+        </button>
+
+        <button onclick="launchConfetti()" title="Celebrate with Confetti"
+          class="px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100/90 hover:bg-amber-200 text-amber-900 border border-amber-300 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i>
+          <span class="hidden sm:inline">Celebrate</span>
+        </button>
+
+        <button id="viewModeBtn" onclick="toggleViewMode()"
+          class="px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-100/90 hover:bg-rose-200 text-rose-900 border border-rose-200 transition flex items-center gap-1.5">
+          <i id="viewModeIcon" class="fa-solid fa-book-open"></i>
+          <span id="viewModeText">View All</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Interactive Storybook Container -->
+  <main id="bookContainer" class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-28">
+
+    <!-- ===================================================================== -->
+    <!-- PAGE 1 – KEEPSAKE EDITION I (COVER SPREAD)                            -->
+    <!-- ===================================================================== -->
+    <section id="page-1" class="book-page active">
+      <div class="bg-[#FFFDF9]/95 rounded-3xl gold-frame p-6 sm:p-10 lg:p-12 relative overflow-hidden">
+        <!-- Decorative Corner Flourishes -->
+        <div class="absolute top-0 right-0 w-44 h-44 bg-gradient-to-bl from-pink-200/40 via-purple-200/20 to-transparent rounded-bl-full pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-44 h-44 bg-gradient-to-tr from-amber-200/35 via-pink-100/20 to-transparent rounded-tr-full pointer-events-none"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+          <!-- Left Full-Spread Keepsake Graphic -->
+          <div class="lg:col-span-7 flex justify-center">
+            <div class="bg-white p-3 sm:p-4 rounded-2xl border-2 border-amber-300/70 shadow-xl w-full max-w-xl">
+              <img
+                src="p1.jpeg"
+                alt="Paridhi's Birthday Keepsake Edition Collage"
+                class="w-full h-auto rounded-xl object-contain"
+              />
+            </div>
+          </div>
+
+          <!-- Right Editorial Introduction -->
+          <div class="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-5">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-pink-50 border border-pink-200 text-rose-700 text-xs font-bold uppercase tracking-widest">
+              <i class="fa-solid fa-sparkles text-amber-500"></i>
+              <span>Page 1 of 7 • Collector’s Edition</span>
+            </div>
+
+            <h1 class="font-serif-editorial text-4xl sm:text-5xl font-bold text-[#4A1D35] leading-tight">
+              Paridhi’s Birthday Keepsake Edition
+            </h1>
+
+            <p class="font-script text-3xl sm:text-4xl text-purple-700">
+              Dedicated to My Beloved Gungun ❤️
+            </p>
+
+            <div class="w-24 h-1 rounded-full bg-gradient-to-r from-pink-400 via-amber-400 to-purple-400"></div>
+
+            <p class="text-base sm:text-lg text-[#5C4352] leading-relaxed">
+              Every page inside this digital memory book was crafted with love to celebrate your radiant smile, our sweetest childhood memories, and the unbreakable bond we share.
+            </p>
+
+            <div class="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3">
+              <button onclick="goToPage(2)"
+                class="px-7 py-3.5 rounded-full bg-gradient-to-r from-[#C94A7C] via-[#D86A93] to-[#D4AF37] text-white font-semibold text-base shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.99] transition flex items-center gap-2.5">
+                <span>Open Interactive Card</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- PAGE 2 – THE BIRTHDAY COVER 🎂                                        -->
+    <!-- ===================================================================== -->
+    <section id="page-2" class="book-page">
+      <div class="bg-gradient-to-br from-[#FFF0F5] via-[#FFFDF9] to-[#EAE4E9] rounded-3xl gold-frame p-6 sm:p-10 lg:p-12 relative overflow-hidden">
+        <!-- Floating Balloons & Stars Header Accents -->
+        <div class="flex items-center justify-between mb-6">
+          <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 border border-amber-300/70 text-amber-800 text-xs font-bold uppercase tracking-widest shadow-sm">
+            <i class="fa-solid fa-cake-candles text-rose-500"></i>
+            <span>Page 2 • The Birthday Cover</span>
+          </span>
+          <div class="flex items-center gap-3 text-xl">
+            <span title="Balloon">🎈</span>
+            <span title="Sparkles">✨</span>
+            <span title="Butterfly">🦋</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          <!-- Left Editorial Title, Welcome & Interactive Birthday Cake -->
+          <div class="lg:col-span-7 space-y-5 text-center lg:text-left">
+            <h2 class="font-serif-editorial text-4xl sm:text-5xl lg:text-6xl font-bold text-[#4A1D35] leading-tight">
+              HAPPY BIRTHDAY, PARIDHI! ❤️
+            </h2>
+
+            <p class="font-script text-3xl sm:text-5xl text-[#9D4EDD]">
+              My Gungun, My Forever Special Sister
+            </p>
+
+            <p class="text-base sm:text-lg text-[#5C4352] leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              Today is all about celebrating the brightest soul in our family! Thank you for filling our lives with warmth, endless laughter, and pure sunshine every single day.
+            </p>
+
+            <!-- Interactive Birthday Cake & Blow Candles Widget -->
+            <div class="bg-white/90 rounded-2xl p-5 border border-pink-200 shadow-md max-w-md mx-auto lg:mx-0">
+              <div class="flex items-center justify-between gap-4">
+                <!-- Custom SVG Birthday Cake with Interactive Flickering Candles -->
+                <div class="flex-shrink-0">
+                  <svg width="96" height="92" viewBox="0 0 110 105" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Birthday Cake with Candles">
+                    <!-- Flames -->
+                    <g id="cakeFlames">
+                      <path class="candle-flame" d="M35 12C35 12 30 19 30 23C30 25.8 32.2 28 35 28C37.8 28 40 25.8 40 23C40 19 35 12 35 12Z" fill="#FFB703"/>
+                      <path class="candle-flame" d="M55 8C55 8 50 15 50 19C50 21.8 52.2 24 55 24C57.8 24 60 21.8 60 19C60 15 55 8 55 8Z" fill="#FB8500"/>
+                      <path class="candle-flame" d="M75 12C75 12 70 19 70 23C70 25.8 72.2 28 75 28C77.8 28 80 25.8 80 23C80 19 75 12 75 12Z" fill="#FFB703"/>
+                    </g>
+                    <!-- Candles -->
+                    <rect x="32" y="29" width="6" height="16" rx="3" fill="#FF8FA3"/>
+                    <rect x="52" y="25" width="6" height="20" rx="3" fill="#C77DFF"/>
+                    <rect x="72" y="29" width="6" height="16" rx="3" fill="#FF8FA3"/>
+                    <!-- Top Cake Layer -->
+                    <rect x="22" y="45" width="66" height="22" rx="8" fill="#FDE2E4" stroke="#E5989B" stroke-width="2"/>
+                    <path d="M22 52C28 57 34 57 40 52C46 57 52 57 58 52C64 57 70 57 76 52C81 56 85 56 88 52" stroke="#C94A7C" stroke-width="2.5" stroke-linecap="round"/>
+                    <!-- Bottom Cake Layer -->
+                    <rect x="14" y="67" width="82" height="24" rx="9" fill="#FFF0F5" stroke="#D4AF37" stroke-width="2"/>
+                    <!-- Cake Plate -->
+                    <ellipse cx="55" cy="95" rx="48" ry="5" fill="#D4AF37" fill-opacity="0.45"/>
+                  </svg>
+                </div>
+
+                <div class="text-left flex-1">
+                  <p id="candleStatusTitle" class="font-serif-editorial font-bold text-base text-[#4A1D35]">
+                    Make a Birthday Wish, Gungun!
+                  </p>
+                  <p id="candleStatusSub" class="text-xs text-[#6D4C5D] mt-0.5 mb-3">
+                    Tap the button to blow out your candles & launch confetti.
+                  </p>
+                  <button id="blowCandlesBtn" onclick="toggleCandles()"
+                    class="px-4 py-2 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white text-xs font-semibold shadow transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-wind"></i>
+                    <span id="blowCandlesText">Blow Out Candles 🎂</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Ornate Floral & Gold Portrait Frame -->
+          <div class="lg:col-span-5 flex justify-center">
+            <div class="relative bg-white p-4 sm:p-5 pb-8 rounded-3xl border-2 border-amber-300 shadow-2xl max-w-sm w-full">
+              <!-- Floral Corner Badge -->
+              <div class="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-amber-300 text-white flex items-center justify-center shadow-md text-lg">
+                🌸
+              </div>
+              <div class="aspect-[3/4] w-full rounded-2xl overflow-hidden bg-pink-50">
+                <img
+                  src="p2.jpeg"
+                  alt="Paridhi smiling brightly in yellow festive outfit"
+                  class="w-full h-full object-cover object-top"
+                />
+              </div>
+              <p class="font-script text-3xl text-center text-amber-700 mt-4">
+                Our Sunshine Girl ✨
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- PAGE 3 – BEAUTIFUL MEMORIES 📸                                        -->
+    <!-- ===================================================================== -->
+    <section id="page-3" class="book-page">
+      <div class="bg-[#FFFDF9]/95 rounded-3xl gold-frame p-6 sm:p-10 lg:p-12">
+        <!-- Section Header -->
+        <div class="text-center max-w-3xl mx-auto mb-8">
+          <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-50 border border-purple-200 text-purple-800 text-xs font-bold uppercase tracking-widest mb-3">
+            <i class="fa-solid fa-camera-retro text-pink-500"></i>
+            <span>Page 3 • Scrapbook Collage</span>
+          </span>
+          <h2 class="font-serif-editorial text-3xl sm:text-5xl font-bold text-[#4A1D35]">
+            Some Memories, A Lifetime of Smiles
+          </h2>
+          <p class="text-sm sm:text-base text-[#5C4352] mt-3 leading-relaxed">
+            From silly childhood giggles and goofy sunglasses to big festive hugs and carefree adventures—every snapshot with you is a memory I’ll treasure forever.
+          </p>
+        </div>
+
+        <!-- 3-Photo Interactive Polaroid Collage Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+          <!-- Polaroid 1: Purple Dress Hug -->
+          <div class="polaroid-card flex flex-col justify-between md:-rotate-2">
+            <div class="aspect-[4/5] w-full rounded-xl overflow-hidden bg-purple-50">
+              <img
+                src="p4.jpeg"
+                alt="Warm festive hug in purple dress"
+                class="w-full h-full object-cover object-top"
+              />
+            </div>
+            <div class="pt-4 text-center">
+              <p class="font-script text-2xl sm:text-3xl text-[#8C47B8]">Warmest Hugs &amp; Smiles</p>
+              <p class="text-xs text-[#6D4C5D] mt-1">Celebrations are brighter with you</p>
+            </div>
+          </div>
+
+          <!-- Polaroid 2: Childhood & Growing Up Collage -->
+          <div class="polaroid-card flex flex-col justify-between md:translate-y-2">
+            <div class="aspect-[4/5] w-full rounded-xl overflow-hidden bg-neutral-900 flex items-center justify-center">
+              <img
+                src="p3.jpeg"
+                alt="Childhood and growing up memories together"
+                class="w-full h-full object-contain"
+              />
+            </div>
+            <div class="pt-4 text-center">
+              <p class="font-script text-2xl sm:text-3xl text-[#C94A7C]">Little Kids to Best Friends</p>
+              <p class="text-xs text-[#6D4C5D] mt-1">Growing up side by side</p>
+            </div>
+          </div>
+
+          <!-- Polaroid 3: Waterpark Day Out -->
+          <div class="polaroid-card flex flex-col justify-between md:rotate-2">
+            <div class="aspect-[4/5] w-full rounded-xl overflow-hidden bg-sky-50">
+              <img
+                src="p5.jpeg"
+                alt="Paridhi enjoying a fun day at the water park"
+                class="w-full h-full object-cover object-top"
+              />
+            </div>
+            <div class="pt-4 text-center">
+              <p class="font-script text-2xl sm:text-3xl text-amber-700">Carefree Adventures</p>
+              <p class="text-xs text-[#6D4C5D] mt-1">Unstoppable laughter &amp; pure joy</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Scrapbook Ribbon Note -->
+        <div class="mt-8 bg-gradient-to-r from-pink-50 via-purple-50 to-amber-50 rounded-2xl p-5 border border-pink-200/80 text-center max-w-3xl mx-auto">
+          <p class="font-serif-editorial italic text-lg sm:text-xl text-[#4A1D35]">
+            “No matter how many years pass, our silly inside jokes and shared laughter will always be my favorite chapter.”
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- PAGE 4 – A SPECIAL MESSAGE FOR GUNGUN 💗                              -->
+    <!-- ===================================================================== -->
+    <section id="page-4" class="book-page">
+      <div class="bg-gradient-to-br from-[#FDF2F8] via-[#FFFDF9] to-[#F4EDFF] rounded-3xl gold-frame p-6 sm:p-10 lg:p-12 relative overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+          <!-- Left Soft-Framed Heartfelt Photo -->
+          <div class="lg:col-span-5 flex justify-center">
+            <div class="bg-white p-4 pb-7 rounded-3xl border-2 border-pink-200 shadow-xl max-w-sm w-full relative">
+              <span class="absolute -top-3 -left-3 text-2xl">🦋</span>
+              <div class="aspect-[3/4] w-full rounded-2xl overflow-hidden bg-pink-50">
+                <img
+                  src="p3.jpeg"
+                  alt="Warm celebratory moment with Paridhi"
+                  class="w-full h-full object-cover object-top"
+                />
+              </div>
+              <p class="font-script text-3xl text-center text-rose-600 mt-4">
+                Pure Heart &amp; Kindness 💗
+              </p>
+            </div>
+          </div>
+
+          <!-- Right Meaningful Letter -->
+          <div class="lg:col-span-7 space-y-5 text-center lg:text-left">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-pink-200 text-rose-700 text-xs font-bold uppercase tracking-widest">
+              <i class="fa-solid fa-heart text-rose-500"></i>
+              <span>Page 4 • From Your Brother’s Heart</span>
+            </div>
+
+            <h2 class="font-serif-editorial text-3xl sm:text-5xl font-bold text-[#4A1D35] leading-tight">
+              A Special Message for Gungun 💗
+            </h2>
+
+            <!-- Highlighted Pull Quote -->
+            <blockquote class="bg-white/95 border-l-4 border-[#C94A7C] rounded-r-2xl p-5 shadow-sm">
+              <p class="font-serif-editorial italic text-xl sm:text-2xl font-semibold text-[#7B2CBF] leading-snug">
+                “You’re not just my sister; you’re one of the most beautiful blessings in my life.”
+              </p>
+            </blockquote>
+
+            <p class="text-base sm:text-lg text-[#523A48] leading-relaxed">
+              Having you in our family fills every corner of our home with warmth, positivity, and genuine love. Your smile effortlessly lifts everyone’s spirits, and your caring heart makes everything around you brighter and kinder.
+            </p>
+
+            <p class="text-base sm:text-lg text-[#523A48] leading-relaxed">
+              Every single day, I feel endlessly grateful and lucky to have you as my sister, my confidante, and my lifelong best friend.
+            </p>
+
+            <div class="pt-2 flex items-center justify-center lg:justify-start gap-3 text-rose-500">
+              <i class="fa-solid fa-heart"></i>
+              <span class="w-14 h-0.5 bg-amber-400"></span>
+              <i class="fa-solid fa-crown text-amber-500"></i>
+              <span class="w-14 h-0.5 bg-amber-400"></span>
+              <i class="fa-solid fa-heart"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- PAGE 5 – MY WISHES FOR YOU ✨                                         -->
+    <!-- ===================================================================== -->
+    <section id="page-5" class="book-page">
+      <div class="bg-[#FFFDF9]/95 rounded-3xl gold-frame p-6 sm:p-10 lg:p-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+          <!-- Left Elegant 3-Photo Magazine Grid -->
+          <div class="lg:col-span-5">
+            <div class="grid grid-cols-2 gap-3.5 bg-gradient-to-br from-pink-50 to-purple-50 p-4 rounded-3xl border border-pink-200 shadow-lg">
+              <div class="aspect-[3/4] rounded-2xl overflow-hidden border-2 border-white shadow">
+                <img
+                  src="p3.jpeg"
+                  alt="Paridhi joyful portrait"
+                  class="w-full h-full object-cover object-top"
+                />
+              </div>
+              <div class="aspect-[3/4] rounded-2xl overflow-hidden border-2 border-white shadow">
+                <img
+                  src="p4.jpeg"
+                  alt="Paridhi smiling outdoors"
+                  class="w-full h-full object-cover object-top"
+                />
+              </div>
+              <div class="col-span-2 aspect-[16/10] rounded-2xl overflow-hidden border-2 border-white shadow">
+                <img
+                  src="p6.png"
+                  alt="Celebration hug"
+                  class="w-full h-full object-cover object-top"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Wishes Message & Interactive Blessing Cards -->
+          <div class="lg:col-span-7 space-y-6">
+            <div>
+              <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold uppercase tracking-widest mb-3">
+                <i class="fa-solid fa-star text-amber-500"></i>
+                <span>Page 5 • Blessings &amp; Dreams</span>
+              </span>
+              <h2 class="font-serif-editorial text-3xl sm:text-5xl font-bold text-[#4A1D35]">
+                My Wishes for You ✨
+              </h2>
+            </div>
+
+            <!-- Exact Requested Birthday Wish -->
+            <div class="bg-gradient-to-br from-[#FFF0F5] to-[#F7F2FF] p-6 sm:p-7 rounded-2xl border border-pink-200 shadow-sm">
+              <p class="text-base sm:text-lg text-[#4A1D35] leading-relaxed font-medium">
+                “May your life always be filled with happiness, success, good health, endless opportunities, and countless reasons to smile. May every dream in your heart find its way into reality. Never stop being the wonderful person you are.”
+              </p>
+            </div>
+
+            <!-- 4 Interactive Blessing Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <button onclick="showWishToast('Wishing you boundless happiness every single day! 🌸')"
+                class="p-4 rounded-2xl bg-pink-50 hover:bg-pink-100 border border-pink-200 text-center transition group">
+                <div class="text-2xl mb-1.5 group-hover:scale-110 transition">🌸</div>
+                <p class="font-serif-editorial font-bold text-sm text-[#4A1D35]">Happiness</p>
+                <p class="text-[11px] text-rose-600 mt-0.5">Tap to bless</p>
+              </button>
+
+              <button onclick="showWishToast('May grand success follow every step you take! ✨')"
+                class="p-4 rounded-2xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-center transition group">
+                <div class="text-2xl mb-1.5 group-hover:scale-110 transition">👑</div>
+                <p class="font-serif-editorial font-bold text-sm text-[#4A1D35]">Success</p>
+                <p class="text-[11px] text-purple-700 mt-0.5">Tap to bless</p>
+              </button>
+
+              <button onclick="showWishToast('Praying for your glowing health and peace of mind! 💖')"
+                class="p-4 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-center transition group">
+                <div class="text-2xl mb-1.5 group-hover:scale-110 transition">☀️</div>
+                <p class="font-serif-editorial font-bold text-sm text-[#4A1D35]">Good Health</p>
+                <p class="text-[11px] text-amber-700 mt-0.5">Tap to bless</p>
+              </button>
+
+              <button onclick="showWishToast('May every dream in your heart come true! 🦋')"
+                class="p-4 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-center transition group">
+                <div class="text-2xl mb-1.5 group-hover:scale-110 transition">🦋</div>
+                <p class="font-serif-editorial font-bold text-sm text-[#4A1D35]">True Dreams</p>
+                <p class="text-[11px] text-rose-700 mt-0.5">Tap to bless</p>
+              </button>
+            </div>
+
+            <!-- Interactive Toast Feedback -->
+            <div id="wishToast" class="hidden rounded-xl bg-white border border-amber-300 px-4 py-3 text-sm font-medium text-[#4A1D35] shadow-sm flex items-center justify-between">
+              <span id="wishToastText"></span>
+              <span class="text-amber-500">✨</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- PAGE 6 – A HEARTFELT ENDING 💕                                        -->
+    <!-- ===================================================================== -->
+    <section id="page-6" class="book-page">
+      <div class="bg-gradient-to-br from-[#FFF0F5] via-[#FFFDF9] to-[#F3EBF9] rounded-3xl gold-frame p-6 sm:p-10 lg:p-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          <!-- Left Closing Letter -->
+          <div class="lg:col-span-7 space-y-5 order-2 lg:order-1">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-rose-200 text-rose-700 text-xs font-bold uppercase tracking-widest">
+              <i class="fa-solid fa-heart text-rose-500"></i>
+              <span>Page 6 • Forever &amp; Always</span>
+            </div>
+
+            <h2 class="font-serif-editorial text-3xl sm:text-5xl font-bold text-[#4A1D35]">
+              A Heartfelt Ending 💕
+            </h2>
+
+            <div class="bg-white/95 rounded-3xl p-6 sm:p-8 border-2 border-pink-200/90 shadow-lg space-y-4">
+              <p class="font-script text-4xl text-[#8C47B8]">
+                Dear Gungun,
+              </p>
+
+              <p class="text-base sm:text-lg text-[#4A1D35] leading-relaxed">
+                No matter how much we grow up or how life changes, you’ll always hold a special place in my heart. Keep smiling, keep shining, and keep being the amazing person you are.
+              </p>
+
+              <p class="font-serif-editorial text-2xl sm:text-3xl font-bold text-[#C94A7C] pt-1">
+                Happy Birthday once again, Paridhi! ❤️
+              </p>
+
+              <div class="w-20 h-0.5 bg-amber-400 my-2"></div>
+
+              <div class="pt-1">
+                <p class="text-base text-[#5C4352]">With lots of love,</p>
+                <p class="font-script text-4xl text-[#4A1D35] mt-1">Your Brother</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Large Gold-Framed Brother & Sister Festive Portrait -->
+          <div class="lg:col-span-5 flex justify-center order-1 lg:order-2">
+            <div class="bg-white p-4 pb-7 rounded-3xl border-2 border-amber-300 shadow-2xl max-w-sm w-full">
+              <div class="aspect-[3/4] w-full rounded-2xl overflow-hidden bg-pink-50">
+                <img
+                  src="p4.jpeg"
+                  alt="Brother and sister dressed in festive traditional attire"
+                  class="w-full h-full object-cover object-top"
+                />
+              </div>
+              <p class="font-script text-3xl text-center text-amber-700 mt-4">
+                Always By Your Side ❤️
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- PAGE 7 – KEEPSAKE EDITION II (FINALE SPREAD)                          -->
+    <!-- ===================================================================== -->
+    <section id="page-7" class="book-page">
+      <div class="bg-[#FFFDF9]/95 rounded-3xl gold-frame p-6 sm:p-10 lg:p-12 relative overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+          <!-- Left Finale Tribute & Celebration Controls -->
+          <div class="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-5 order-2 lg:order-1">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-50 border border-amber-300 text-amber-800 text-xs font-bold uppercase tracking-widest">
+              <i class="fa-solid fa-crown text-amber-500"></i>
+              <span>Page 7 of 7 • Grand Finale</span>
+            </div>
+
+            <h2 class="font-serif-editorial text-4xl sm:text-5xl font-bold text-[#4A1D35] leading-tight">
+              Keep Shining, Gungun! ✨
+            </h2>
+
+            <p class="font-script text-3xl sm:text-4xl text-[#8C47B8]">
+              Stay Happy Always...
+            </p>
+
+            <div class="w-24 h-1 rounded-full bg-gradient-to-r from-amber-400 via-pink-400 to-purple-400"></div>
+
+            <p class="text-base sm:text-lg text-[#5C4352] leading-relaxed">
+              Here’s to another year of unforgettable memories, boundless joy, and all your sweetest dreams coming true. Happy Birthday once again, dear Paridhi!
+            </p>
+
+            <div class="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3">
+              <button onclick="launchConfetti()"
+                class="px-6 py-3 rounded-full bg-gradient-to-r from-[#C94A7C] to-[#D4AF37] text-white font-semibold text-sm sm:text-base shadow-lg hover:shadow-xl hover:scale-[1.02] transition flex items-center gap-2">
+                <span>Replay Celebration 🎉</span>
+              </button>
+
+              <button onclick="goToPage(1)"
+                class="px-6 py-3 rounded-full bg-white hover:bg-pink-50 text-[#4A1D35] border-2 border-pink-200 font-semibold text-sm sm:text-base shadow-sm transition flex items-center gap-2">
+                <i class="fa-solid fa-rotate-left text-rose-500"></i>
+                <span>Back to Cover</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Second Keepsake Spread Graphic -->
+          <div class="lg:col-span-7 flex justify-center order-1 lg:order-2">
+            <div class="bg-white p-3 sm:p-4 rounded-2xl border-2 border-amber-300/70 shadow-xl w-full max-w-xl">
+              <img
+                src="p7.jpeg"
+                alt="Paridhi's Birthday Keepsake Edition II Collage"
+                class="w-full h-auto rounded-xl object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Fixed Bottom Page Navigation Bar -->
+  <footer id="bottomNavBar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-xl">
+    <div class="backdrop-blur-md bg-[#FFFDF9]/92 border border-pink-200/90 shadow-xl rounded-full px-4 py-2.5 flex items-center justify-between gap-3">
+      <!-- Previous Button -->
+      <button id="prevBtn" onclick="prevPage()"
+        class="px-4 py-2 rounded-full bg-pink-50 hover:bg-pink-100 disabled:opacity-40 disabled:pointer-events-none text-[#4A1D35] font-semibold text-xs sm:text-sm transition flex items-center gap-1.5">
+        <i class="fa-solid fa-chevron-left text-rose-500"></i>
+        <span>Prev</span>
+      </button>
+
+      <!-- Page Indicator Dots & Counter -->
+      <div class="flex flex-col items-center">
+        <div class="flex items-center gap-2" id="pageDots">
+          <button onclick="goToPage(1)" aria-label="Go to Page 1" class="dot-btn w-2.5 h-2.5 rounded-full transition-all"></button>
+          <button onclick="goToPage(2)" aria-label="Go to Page 2" class="dot-btn w-2.5 h-2.5 rounded-full transition-all"></button>
+          <button onclick="goToPage(3)" aria-label="Go to Page 3" class="dot-btn w-2.5 h-2.5 rounded-full transition-all"></button>
+          <button onclick="goToPage(4)" aria-label="Go to Page 4" class="dot-btn w-2.5 h-2.5 rounded-full transition-all"></button>
+          <button onclick="goToPage(5)" aria-label="Go to Page 5" class="dot-btn w-2.5 h-2.5 rounded-full transition-all"></button>
+          <button onclick="goToPage(6)" aria-label="Go to Page 6" class="dot-btn w-2.5 h-2.5 rounded-full transition-all"></button>
+          <button onclick="goToPage(7)" aria-label="Go to Page 7" class="dot-btn w-2.5 h-2.5 rounded-full transition-all"></button>
+        </div>
+        <span id="pageCounterLabel" class="text-[11px] font-semibold text-[#6D4C5D] mt-1">
+          Page 1 of 7
+        </span>
+      </div>
+
+      <!-- Next Button -->
+      <button id="nextBtn" onclick="nextPage()"
+        class="px-4 py-2 rounded-full bg-gradient-to-r from-[#C94A7C] to-[#D86A93] hover:opacity-95 disabled:opacity-40 disabled:pointer-events-none text-white font-semibold text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
+        <span>Next</span>
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Interactive Scripts: Page Carousel, Swipe/Keyboard Navigation, Confetti, Candles & Music Box -->
+  <script>
+    let currentPage = 1;
+    const totalPages = 7;
+    let isViewAll = false;
+    let candlesBlown = false;
+    let isPlayingMusic = false;
+    let musicLoop = null;
+
+    // Update active page, navigation pills, dots, and prev/next buttons
+    function goToPage(pageNum) {
+      if (isViewAll) {
+        toggleViewMode();
+      }
+      if (pageNum < 1 || pageNum > totalPages) return;
+      currentPage = pageNum;
+
+      // Update visible page
+      document.querySelectorAll('.book-page').forEach((sec, idx) => {
+        if (idx + 1 === currentPage) {
+          sec.classList.add('active');
+        } else {
+          sec.classList.remove('active');
+        }
+      });
+
+      // Update top desktop nav pills
+      document.querySelectorAll('.nav-pill').forEach((pill) => {
+        const target = Number(pill.getAttribute('data-nav'));
+        if (target === currentPage) {
+          pill.classList.add('bg-gradient-to-r', 'from-[#C94A7C]', 'to-[#D86A93]', 'text-white', 'shadow-sm');
+          pill.classList.remove('text-[#5C4352]', 'hover:bg-pink-100');
+        } else {
+          pill.classList.remove('bg-gradient-to-r', 'from-[#C94A7C]', 'to-[#D86A93]', 'text-white', 'shadow-sm');
+          pill.classList.add('text-[#5C4352]', 'hover:bg-pink-100');
+        }
+      });
+
+      // Update bottom dots
+      document.querySelectorAll('.dot-btn').forEach((dot, idx) => {
+        if (idx + 1 === currentPage) {
+          dot.classList.add('w-6', 'bg-[#C94A7C]');
+          dot.classList.remove('w-2.5', 'bg-pink-200');
+        } else {
+          dot.classList.remove('w-6', 'bg-[#C94A7C]');
+          dot.classList.add('w-2.5', 'bg-pink-200');
+        }
+      });
+
+      // Update counter & buttons
+      document.getElementById('pageCounterLabel').textContent = `Page ${currentPage} of ${totalPages}`;
+      document.getElementById('prevBtn').disabled = currentPage === 1;
+      document.getElementById('nextBtn').disabled = currentPage === totalPages;
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Trigger celebratory burst on Cover (2) or Finale (7)
+      if (currentPage === 2 || currentPage === 7) {
+        launchConfetti(45);
+      }
+    }
+
+    function nextPage() {
+      if (currentPage < totalPages) goToPage(currentPage + 1);
+    }
+
+    function prevPage() {
+      if (currentPage > 1) goToPage(currentPage - 1);
+    }
+
+    // Toggle between Single-Page Interactive Book and Full Vertical Scroll View
+    function toggleViewMode() {
+      isViewAll = !isViewAll;
+      const container = document.getElementById('bookContainer');
+      const bottomNav = document.getElementById('bottomNavBar');
+      const btnText = document.getElementById('viewModeText');
+      const btnIcon = document.getElementById('viewModeIcon');
+
+      if (isViewAll) {
+        container.classList.add('book-view-all');
+        bottomNav.classList.add('hidden');
+        btnText.textContent = 'Book View';
+        btnIcon.className = 'fa-solid fa-pager';
+      } else {
+        container.classList.remove('book-view-all');
+        bottomNav.classList.remove('hidden');
+        btnText.textContent = 'View All';
+        btnIcon.className = 'fa-solid fa-book-open';
+        goToPage(currentPage);
+      }
+    }
+
+    // Keyboard arrow support
+    document.addEventListener('keydown', (e) => {
+      if (isViewAll) return;
+      if (e.key === 'ArrowRight') nextPage();
+      if (e.key === 'ArrowLeft') prevPage();
+    });
+
+    // Touch swipe support for mobile devices
+    let touchStartX = 0;
+    document.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+      if (isViewAll) return;
+      const touchEndX = e.changedTouches[0].screenX;
+      const diff = touchStartX - touchEndX;
+      if (Math.abs(diff) > 55) {
+        if (diff > 0) nextPage();
+        else prevPage();
+      }
+    }, { passive: true });
+
+    // Interactive Birthday Cake Candles
+    function toggleCandles() {
+      candlesBlown = !candlesBlown;
+      const flames = document.querySelectorAll('.candle-flame');
+      const title = document.getElementById('candleStatusTitle');
+      const sub = document.getElementById('candleStatusSub');
+      const btnText = document.getElementById('blowCandlesText');
+
+      flames.forEach((flame) => {
+        if (candlesBlown) flame.classList.add('blown-out');
+        else flame.classList.remove('blown-out');
+      });
+
+      if (candlesBlown) {
+        title.textContent = 'Yay!! Happy Birthday, Paridhi! 🎉';
+        sub.textContent = 'May every wish in your heart come true this year!';
+        btnText.textContent = 'Relight Candles ✨';
+        launchConfetti(110);
+      } else {
+        title.textContent = 'Make a Birthday Wish, Gungun!';
+        sub.textContent = 'Tap the button to blow out your candles & launch confetti.';
+        btnText.textContent = 'Blow Out Candles 🎂';
+      }
+    }
+
+    // Wish Card Toast Feedback on Page 5
+    function showWishToast(message) {
+      const toast = document.getElementById('wishToast');
+      const text = document.getElementById('wishToastText');
+      text.textContent = message;
+      toast.classList.remove('hidden');
+      launchConfetti(35);
+    }
+
+    // Gentle Happy Birthday Music Box using Tone.js
+    async function toggleMusicBox() {
+      const label = document.getElementById('musicLabel');
+      const icon = document.getElementById('musicIcon');
+
+      if (isPlayingMusic) {
+        if (musicLoop) {
+          musicLoop.stop();
+          musicLoop.dispose();
+          musicLoop = null;
+        }
+        Tone.Transport.stop();
+        isPlayingMusic = false;
+        label.textContent = 'Music Box';
+        icon.className = 'fa-solid fa-music';
+        return;
+      }
+
+      try {
+        await Tone.start();
+        const synth = new Tone.PolySynth(Tone.Synth, {
+          oscillator: { type: 'sine' },
+          envelope: { attack: 0.03, decay: 0.4, sustain: 0.2, release: 1.2 }
+        }).toDestination();
+        synth.volume.value = -10;
+
+        // Happy Birthday melody notes
+        const melody = [
+          { note: 'C4', dur: '8n', time: 0 },
+          { note: 'C4', dur: '8n', time: 0.35 },
+          { note: 'D4', dur: '4n', time: 0.7 },
+          { note: 'C4', dur: '4n', time: 1.3 },
+          { note: 'F4', dur: '4n', time: 1.9 },
+          { note: 'E4', dur: '2n', time: 2.5 },
+
+          { note: 'C4', dur: '8n', time: 3.6 },
+          { note: 'C4', dur: '8n', time: 3.95 },
+          { note: 'D4', dur: '4n', time: 4.3 },
+          { note: 'C4', dur: '4n', time: 4.9 },
+          { note: 'G4', dur: '4n', time: 5.5 },
+          { note: 'F4', dur: '2n', time: 6.1 },
+
+          { note: 'C4', dur: '8n', time: 7.2 },
+          { note: 'C4', dur: '8n', time: 7.55 },
+          { note: 'C5', dur: '4n', time: 7.9 },
+          { note: 'A4', dur: '4n', time: 8.5 },
+          { note: 'F4', dur: '4n', time: 9.1 },
+          { note: 'E4', dur: '4n', time: 9.7 },
+          { note: 'D4', dur: '2n', time: 10.3 },
+
+          { note: 'Bb4', dur: '8n', time: 11.4 },
+          { note: 'Bb4', dur: '8n', time: 11.75 },
+          { note: 'A4', dur: '4n', time: 12.1 },
+          { note: 'F4', dur: '4n', time: 12.7 },
+          { note: 'G4', dur: '4n', time: 13.3 },
+          { note: 'F4', dur: '2n', time: 13.9 }
+        ];
+
+        musicLoop = new Tone.Part((time, val) => {
+          synth.triggerAttackRelease(val.note, val.dur, time);
+        }, melody);
+
+        musicLoop.loop = true;
+        musicLoop.loopEnd = 15.2;
+        musicLoop.start(0);
+        Tone.Transport.start();
+
+        isPlayingMusic = true;
+        label.textContent = 'Pause Music';
+        icon.className = 'fa-solid fa-pause';
+      } catch (err) {
+        console.error('Audio playback could not start:', err);
+      }
+    }
+
+    // Pastel Pink, Lavender & Gold Confetti Particle Engine
+    const canvas = document.getElementById('celebrationCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let animationFrameId = null;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const confettiColors = ['#F48FB1', '#CE93D8', '#D4AF37', '#FFCDD2', '#E1BEE7', '#FFD54F'];
+
+    function launchConfetti(count = 85) {
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: -15 - Math.random() * 120,
+          w: 7 + Math.random() * 7,
+          h: 5 + Math.random() * 6,
+          color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+          vx: (Math.random() - 0.5) * 3.5,
+          vy: 2.2 + Math.random() * 3.4,
+          rot: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 8,
+          opacity: 1
+        });
+      }
+      if (!animationFrameId) {
+        animateConfetti();
+      }
+    }
+
+    function animateConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.vRot;
+        if (p.y > canvas.height - 80) {
+          p.opacity -= 0.025;
+        }
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rot * Math.PI) / 180);
+        ctx.globalAlpha = Math.max(0, p.opacity);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      });
+
+      particles = particles.filter((p) => p.opacity > 0 && p.y < canvas.height + 30);
+
+      if (particles.length > 0) {
+        animationFrameId = requestAnimationFrame(animateConfetti);
+      } else {
+        animationFrameId = null;
+      }
+    }
+
+    // Initialize Page 1 on load
+    window.addEventListener('DOMContentLoaded', () => {
+      goToPage(1);
+    });
+  </script>
+</body>
+</html>
